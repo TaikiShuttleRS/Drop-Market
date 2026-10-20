@@ -201,6 +201,15 @@ the plugin's data folder, `Plugin.getPluginDirectory()` (needs `internalName` in
 c-engineer-completed: fixed names, nothing deleted, subfolders ignored) through RuneLite's `AudioPlayer` (the hub rejects `javax.sound`) on RuneLite's injected executor (never the client thread), falling
 back to the chime. The two "button" settings (`testWinSound`, `showSoundFolder`, which prints the folder path in chat) un-tick themselves in `handleConfigChanged`.
 
+## Skilling markets and Hunter
+
+Skilling markets count one action per XP drop, so the counter words are generic where a drop isn't a whole lap or voyage
+(`SKILL_UNITS`). Hunter has no catch-all market: `HunterTargets` names the four pet activities (chinchompas, wyrmscraig
+goats, the herbiboar, expert/master Hunters' loot sacks) and the plugin only counts Hunter XP that arrives within a tick of a
+chinchompa or goat item entering the inventory (`noteHunterGains` / `resolvePendingHunter`), or an opened expert/master sack via
+`LootReceived`. The herbiboar is still Hunter + Herblore XP on the same tick. The goat and sack detection rests on item and loot
+names that have not been verified in-game (the sack's `LootReceived` name in particular): if a market never opens, check those.
+
 ## Multi-part items and the Font of Consumption
 
 - Items that need several untradeable drops (Noxious halberd: blade, point, pommel; Abyssal bludgeon: axon, claw, spine)

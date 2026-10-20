@@ -447,6 +447,16 @@ public class MarketPainterTest
 	}
 
 	@Test
+	public void theDotBetweenTheTwoOddsOnlyAppearsWhenThereIsRoomForIt()
+	{
+		assertTrue(MarketPainter.gapDotFits(30, 3));
+		assertTrue(MarketPainter.gapDotFits(15, 3));
+		assertFalse(MarketPainter.gapDotFits(14, 3));
+		assertFalse(MarketPainter.gapDotFits(0, 3));
+		assertFalse(MarketPainter.gapDotFits(-10, 3));
+	}
+
+	@Test
 	public void bothDeltasCanBeTurnedOff() throws Exception
 	{
 		TestConfig on = new TestConfig();

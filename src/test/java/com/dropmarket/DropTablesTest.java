@@ -90,7 +90,7 @@ public class DropTablesTest
 	public void petFirstTablesLeadWithAPet()
 	{
 		String[] sources = {"Mining", "Woodcutting", "Fishing", "Agility", "Thieving", "Farming", "Runecraft",
-			"Hunter", "Sailing", DropTables.HERBIBOAR, "Chompy bird", "Zalcano", DropTables.WINTERTODT,
+			"Sailing", DropTables.HERBIBOAR, HunterTargets.CHINCHOMPAS, HunterTargets.GOATS, HunterTargets.RUMOURS, "Chompy bird", "Zalcano", DropTables.WINTERTODT,
 			DropTables.TEMPOROSS, DropTables.GUARDIANS_OF_THE_RIFT};
 		for (String source : sources)
 		{

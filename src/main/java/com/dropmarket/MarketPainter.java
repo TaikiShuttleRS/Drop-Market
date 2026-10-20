@@ -50,6 +50,8 @@ final class MarketPainter
 	private static final int TIGHT_GROUP_GAP = 10;
 	private static final int PAIR_GAP = 10;
 	private static final int SCROLL_GAP = 28;
+	// Empty room kept on each side of the dot between the two odds.
+	private static final int GAP_DOT_MARGIN = 6;
 	// The drawn line only moves once the odds have changed by this many points, so it holds flat and then turns sharply.
 	private static final double RIGID_STEP = 1.4;
 	private static final int SCROLL_PX_PER_TICK = 8;
@@ -533,6 +535,10 @@ final class MarketPainter
 			x += pct1W + changeGap;
 			x += drawDelta(g, x, deltaBase, delta1, accent, color(config.line1FallingColor(), DropMarketConfig.DEFAULT_NEGATIVE_DELTA_COLOR), smallFont);
 			// Line 2's readout hugs the right edge in Full; Compact keeps that side for its sparkline.
+			if (full)
+			{
+				drawGapDot(g, x, limit - (pct2W + tail2), baseline, bigFm, smallFont);
+			}
 			x = full ? limit - (pct2W + tail2) : x + groupGap;
 			g.setFont(bigFont);
 			text(g, pct2, x, baseline, accent2);
@@ -557,6 +563,28 @@ final class MarketPainter
 		// No second number: line 2's change simply follows line 1's.
 		x += PAIR_GAP;
 		return x + drawDelta(g, x, deltaBase, delta2, accent2, color(config.line2FallingColor(), DropMarketConfig.DEFAULT_NEGATIVE_DELTA_COLOR), smallFont);
+	}
+
+	/** True when there is room for the small dot between the two odds: some empty space on both sides of it. */
+	static boolean gapDotFits(int gap, int dotWidth)
+	{
+		return gap >= dotWidth + 2 * GAP_DOT_MARGIN;
+	}
+
+	/** A small dot centred in the empty space between the two odds, like the one between LIVE and the counter. */
+	private static void drawGapDot(Graphics2D g, int left, int right, int baseline, FontMetrics bigFm, Font smallFont)
+	{
+		FontMetrics smallFm = g.getFontMetrics(smallFont);
+		int dotWidth = smallFm.stringWidth("\u00B7");
+		int gap = right - left;
+		if (!gapDotFits(gap, dotWidth))
+		{
+			return;
+		}
+		g.setFont(smallFont);
+		// The dot sits mid-height of the big numbers, not on their baseline.
+		int y = baseline - bigFm.getAscent() / 2 + smallFm.getAscent() / 3 + 3;
+		text(g, "\u00B7", left + (gap - dotWidth) / 2, y, MUTED);
 	}
 
 	/** Always renders (the delta should never disappear); the arrow is skipped only for an exact 0. */

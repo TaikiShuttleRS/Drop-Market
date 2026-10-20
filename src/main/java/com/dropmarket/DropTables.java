@@ -202,7 +202,11 @@ final class DropTables
 		petFirst("Farming", "Tangleroot");
 		petFirst("Runecraft", "Rift guardian");
 		alias("Runecraft", "runecrafting", "rc");
-		petFirst("Hunter", "Baby chinchompa");
+		// Hunter has four pets, each from one activity (see HunterTargets); other Hunter actions have no market.
+		petFirst(HunterTargets.CHINCHOMPAS, "Baby chinchompa");
+		petFirst(HunterTargets.GOATS, "Mr McGroot");
+		petFirst(HunterTargets.RUMOURS, "Quetzin");
+		alias(HunterTargets.RUMOURS, "hunters loot sack");
 		petFirst("Sailing", "Soup");
 
 		table("Brutus", "Cow slippers", "Bottomless milk bucket (empty)", "Beef");
@@ -281,7 +285,7 @@ final class DropTables
 			"tumekens guardian", "tzrek jad", "venenatis spiderling", "vetion jr", "vorki", "wisp", "yami",
 			"youngllef", "baby chinchompa", "beaver", "giant squirrel", "heron", "rift guardian", "rock golem",
 			"rocky", "soup", "tangleroot", "abyssal protector", "bloodhound", "chompy chick", "herbi",
-			"lil creator", "pet penance queen", "quetzin"));
+			"lil creator", "pet penance queen", "quetzin", "mr mcgroot"));
 	}
 
 	private DropTables()

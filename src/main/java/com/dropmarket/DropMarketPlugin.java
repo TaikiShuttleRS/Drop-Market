@@ -84,6 +84,9 @@ public class DropMarketPlugin extends Plugin
 	private static final int VOLUME_POP_TICKS = 8;
 	// Client ticks (20ms each) between the notes of a multi-note win sound.
 	private static final int NOTE_GAP_CLIENT_TICKS = 12;
+	private static final int NEVER = -1000;
+	// How many game ticks apart a Hunter XP drop and the item it came with may arrive.
+	private static final int HUNTER_PAIR_TICKS = 1;
 	private static final double VOLUME_POP_CHANCE = 0.3;
 	// Rolled once per PvM kill/attempt: a flat shot at the market featuring the pet instead of the usual
 	// most-valuable drop, win or lose on the actual roll - and regardless of whether it's already obtained.
@@ -111,21 +114,23 @@ public class DropMarketPlugin extends Plugin
 		.put(Skill.THIEVING, "Thieving")
 		.put(Skill.FARMING, "Farming")
 		.put(Skill.RUNECRAFT, "Runecraft")
-		.put(Skill.HUNTER, "Hunter")
 		.put(Skill.SAILING, "Sailing")
 		.build();
 	// The badge counter's unit for markets driven by training rather than kills/loot.
 	private static final Map<String, String> SKILL_UNITS = ImmutableMap.<String, String>builder()
-		.put("Mining", "rocks")
+		.put("Mining", "ores")
 		.put("Woodcutting", "logs")
-		.put("Fishing", "catches")
-		.put("Agility", "laps")
+		.put("Fishing", "fish")
+		// Every XP drop is one obstacle or one action, not a whole lap or voyage, so these stay generic.
+		.put("Agility", "actions")
 		.put("Thieving", "attempts")
 		.put("Farming", "harvests")
 		.put("Runecraft", "runs")
-		.put("Hunter", "catches")
-		.put("Sailing", "voyages")
+		.put("Sailing", "actions")
 		.put(DropTables.HERBIBOAR, "harvests")
+		.put(HunterTargets.CHINCHOMPAS, "catches")
+		.put(HunterTargets.GOATS, "hunts")
+		.put(HunterTargets.RUMOURS, "sacks")
 		.build();
 
 	@Inject
@@ -220,6 +225,10 @@ public class DropMarketPlugin extends Plugin
 	private String skillSource;
 	private int lastSkillTick;
 	private int lastHunterXpTick;
+	// Hunter XP only counts once we know what was hunted: a chinchompa or goat item gained within a tick of the XP.
+	private boolean hunterXpPending;
+	private int lastChinGainTick = NEVER;
+	private int lastGoatGainTick = NEVER;
 	private int lastHerbloreXpTick;
 	private boolean corruptedGauntlet;
 	private Set<Integer> trailItemIds = Collections.emptySet();
@@ -342,6 +351,9 @@ public class DropMarketPlugin extends Plugin
 		lastNotableTick = -IDLE_TICKS - 1;
 		lastSkillTick = -SKILL_IDLE_TICKS - 1;
 		lastHunterXpTick = -1;
+		hunterXpPending = false;
+		lastChinGainTick = NEVER;
+		lastGoatGainTick = NEVER;
 		lastHerbloreXpTick = -1;
 		targetSource = null;
 		notableSource = null;
@@ -545,6 +557,7 @@ public class DropMarketPlugin extends Plugin
 		if (skill == Skill.HUNTER)
 		{
 			lastHunterXpTick = ticks;
+			hunterXpPending = true;
 		}
 		else if (skill == Skill.HERBLORE)
 		{
@@ -556,11 +569,20 @@ public class DropMarketPlugin extends Plugin
 		{
 			// Harvesting the herbiboar is the only thing granting Hunter and Herblore XP together.
 			market = DropTables.HERBIBOAR;
+			hunterXpPending = false;
 		}
 		else if (skill == Skill.HUNTER && DropTables.HERBIBOAR.equals(skillSource)
 			&& ticks - lastSkillTick <= SKILL_IDLE_TICKS)
 		{
 			market = DropTables.HERBIBOAR;
+			hunterXpPending = false;
+		}
+		else if (skill == Skill.HUNTER)
+		{
+			// Hunter has four pets from four specific activities; XP from anything else isn't a pet roll, so it only
+			// counts if a chinchompa or goat item arrives with it (see noteHunterGains).
+			resolvePendingHunter();
+			return;
 		}
 		else
 		{
@@ -569,14 +591,90 @@ public class DropMarketPlugin extends Plugin
 
 		if (market != null)
 		{
-			skillSource = market;
-			lastSkillTick = ticks;
-			if (SKILL_UNITS.containsKey(market))
+			registerSkillAction(market);
+		}
+	}
+
+	/** One counted skilling action: opens (or keeps) that activity's market and adds to its counter. */
+	private void registerSkillAction(String market)
+	{
+		skillSource = market;
+		lastSkillTick = ticks;
+		if (SKILL_UNITS.containsKey(market))
+		{
+			skillCounts.merge(market, 1, Integer::sum);
+			finishActivityUnit();
+		}
+	}
+
+	/** Pairs a Hunter XP drop with the chinchompa or goat item that came with it, once both have arrived. */
+	private void resolvePendingHunter()
+	{
+		if (!hunterXpPending)
+		{
+			return;
+		}
+		if (ticks - lastHunterXpTick > HUNTER_PAIR_TICKS)
+		{
+			hunterXpPending = false;
+			return;
+		}
+		String market = null;
+		if (ticks - lastChinGainTick <= HUNTER_PAIR_TICKS)
+		{
+			market = HunterTargets.CHINCHOMPAS;
+		}
+		else if (ticks - lastGoatGainTick <= HUNTER_PAIR_TICKS)
+		{
+			market = HunterTargets.GOATS;
+		}
+		if (market != null)
+		{
+			hunterXpPending = false;
+			registerSkillAction(market);
+		}
+	}
+
+	/** Notes chinchompas or goat drops arriving in the inventory, so a Hunter XP drop beside them can be counted. */
+	private void noteHunterGains(ItemContainer inventory)
+	{
+		Map<Integer, Integer> now = new HashMap<>();
+		for (Item item : inventory.getItems())
+		{
+			if (item.getId() > 0)
 			{
-				skillCounts.merge(market, 1, Integer::sum);
-				finishActivityUnit();
+				now.merge(item.getId(), item.getQuantity(), Integer::sum);
 			}
 		}
+		boolean chinchompa = false;
+		boolean goat = false;
+		for (Map.Entry<Integer, Integer> entry : now.entrySet())
+		{
+			if (entry.getValue() > lastInventory.getOrDefault(entry.getKey(), 0))
+			{
+				String market = HunterTargets.marketForGainedItem(itemLookup.nameOf(entry.getKey()));
+				chinchompa |= HunterTargets.CHINCHOMPAS.equals(market);
+				goat |= HunterTargets.GOATS.equals(market);
+			}
+		}
+		if (chinchompa)
+		{
+			lastChinGainTick = ticks;
+		}
+		if (goat)
+		{
+			lastGoatGainTick = ticks;
+		}
+		if (chinchompa || goat)
+		{
+			resolvePendingHunter();
+		}
+	}
+
+	/** The counter's unit for a skilling market ("ores", "logs"...), or null if it isn't one. */
+	static String skillUnit(String market)
+	{
+		return SKILL_UNITS.get(market);
 	}
 
 	@Subscribe
@@ -634,6 +732,7 @@ public class DropMarketPlugin extends Plugin
 		{
 			return;
 		}
+		noteHunterGains(event.getItemContainer());
 		spotOffering(event.getItemContainer());
 		Set<Integer> ids = new HashSet<>();
 		for (Item item : event.getItemContainer().getItems())
@@ -785,6 +884,11 @@ public class DropMarketPlugin extends Plugin
 	private void handleLootReceived(LootReceived event)
 	{
 		checkLoot(event.getItems());
+		if (HunterTargets.isPetRollSack(event.getName()))
+		{
+			// Opening an expert or master Hunters' loot sack is a Quetzin roll.
+			registerSkillAction(HunterTargets.RUMOURS);
+		}
 		if (event.getName() != null)
 		{
 			String source = DropTables.canonicalSource(event.getName());

@@ -150,6 +150,14 @@ public class PluginIntegrationTest
 		@Override
 		String nameOf(int id)
 		{
+			if (id == CHINCHOMPA_ID)
+			{
+				return "Chinchompa";
+			}
+			if (id == GOAT_FUR_ID)
+			{
+				return "Wyrmscraig goat fur";
+			}
 			return mode == Mode.NULLS ? "" : NAMES[Math.floorMod(id, NAMES.length)];
 		}
 
@@ -211,6 +219,9 @@ public class PluginIntegrationTest
 			return "stub-sound-folder";
 		}
 	}
+
+	private static final int CHINCHOMPA_ID = 10033;
+	private static final int GOAT_FUR_ID = 1_000_001;
 
 	private static final String[] NAMES = {"Tanzanite fang", "Dragon bones", "Coins", "Scythe of vitur", "Emerald",
 		"Pet snakeling", "Abyssal whip", "Uncut diamond"};
@@ -746,6 +757,124 @@ public class PluginIntegrationTest
 		show.setNewValue("false");
 		rig.plugin.onConfigChanged(show);
 		Assert.assertEquals(1, rig.customSound.prepared);
+		Assert.assertEquals(Collections.emptyList(), rig.unexpectedFailures());
+	}
+
+	private static void inventory(Rig rig, int... itemIds)
+	{
+		Item[] items = new Item[itemIds.length];
+		for (int i = 0; i < itemIds.length; i++)
+		{
+			items[i] = new Item(itemIds[i], 1);
+		}
+		ItemContainer container = stub(ItemContainer.class, (m, args) -> m.getName().equals("getItems") ? items
+			: defaultFor(m.getReturnType()));
+		rig.plugin.onItemContainerChanged(new ItemContainerChanged(93, container));
+	}
+
+	private static void hunterXp(Rig rig, int xp)
+	{
+		rig.plugin.onStatChanged(new StatChanged(Skill.HUNTER, xp, 50, 50));
+	}
+
+	private static void tick(Rig rig, int count)
+	{
+		for (int i = 0; i < count; i++)
+		{
+			rig.plugin.onGameTick(new GameTick());
+		}
+	}
+
+	/** Ordinary Hunter XP (birds, kebbits...) is not a pet roll, so it opens no market and counts nothing. */
+	@Test
+	public void plainHunterXpIsIgnored() throws Exception
+	{
+		Rig rig = new Rig(Mode.NORMAL, WinSound.OFF);
+		rig.plugin.startUp();
+		hunterXp(rig, 1_000);
+		tick(rig, 3);
+		hunterXp(rig, 1_200);
+		tick(rig, 5);
+		hunterXp(rig, 1_400);
+		tick(rig, 5);
+		Assert.assertEquals(DropMarketPlugin.LIVE_ODDS, rig.plugin.getTitle());
+		Assert.assertFalse(rig.plugin.getBadgeText(), rig.plugin.getBadgeText().contains("catches"));
+		Assert.assertEquals(Collections.emptyList(), rig.unexpectedFailures());
+	}
+
+	/** A chinchompa gained with the Hunter XP is a chinchompa catch, whichever of the two arrives first. */
+	@Test
+	public void aChinchompaWithHunterXpCountsAsACatch() throws Exception
+	{
+		for (boolean itemFirst : new boolean[]{true, false})
+		{
+			Rig rig = new Rig(Mode.NORMAL, WinSound.OFF);
+			rig.plugin.startUp();
+			hunterXp(rig, 1_000);
+			tick(rig, 3);
+			if (itemFirst)
+			{
+				inventory(rig, CHINCHOMPA_ID);
+				hunterXp(rig, 1_198);
+			}
+			else
+			{
+				hunterXp(rig, 1_198);
+				inventory(rig, CHINCHOMPA_ID);
+			}
+			tick(rig, 2);
+			Assert.assertTrue("market opened: " + rig.plugin.getTitle(), rig.plugin.getTitle().toLowerCase().contains("chinchompas"));
+			Assert.assertEquals("1 catches", rig.plugin.getBadgeText());
+			// A second catch adds to the same counter.
+			hunterXp(rig, 1_396);
+			inventory(rig, CHINCHOMPA_ID, CHINCHOMPA_ID);
+			tick(rig, 2);
+			Assert.assertEquals("2 catches", rig.plugin.getBadgeText());
+			Assert.assertEquals(Collections.emptyList(), rig.unexpectedFailures());
+		}
+	}
+
+	/** Taking chinchompas out of the bank is not catching them: no Hunter XP comes with it. */
+	@Test
+	public void withdrawingChinchompasIsNotACatch() throws Exception
+	{
+		Rig rig = new Rig(Mode.NORMAL, WinSound.OFF);
+		rig.plugin.startUp();
+		hunterXp(rig, 1_000);
+		tick(rig, 3);
+		inventory(rig, CHINCHOMPA_ID);
+		tick(rig, 5);
+		Assert.assertEquals(DropMarketPlugin.LIVE_ODDS, rig.plugin.getTitle());
+	}
+
+	@Test
+	public void goatDropsWithHunterXpCountAsAGoatHunt() throws Exception
+	{
+		Rig rig = new Rig(Mode.NORMAL, WinSound.OFF);
+		rig.plugin.startUp();
+		hunterXp(rig, 1_000);
+		tick(rig, 3);
+		inventory(rig, GOAT_FUR_ID);
+		hunterXp(rig, 1_300);
+		tick(rig, 2);
+		Assert.assertTrue(rig.plugin.getTitle(), rig.plugin.getTitle().toLowerCase().contains("wyrmscraig goats"));
+		Assert.assertEquals("1 hunts", rig.plugin.getBadgeText());
+	}
+
+	@Test
+	public void expertAndMasterSacksCountAsRumoursButBasicOnesDoNot() throws Exception
+	{
+		Rig rig = new Rig(Mode.NORMAL, WinSound.OFF);
+		rig.plugin.startUp();
+		rig.plugin.onLootReceived(new LootReceived("Hunters' loot sack (adept)", 0, LootRecordType.EVENT,
+			Collections.singletonList(new ItemStack(1_000, 1)), 1, null));
+		tick(rig, 3);
+		Assert.assertEquals(DropMarketPlugin.LIVE_ODDS, rig.plugin.getTitle());
+		rig.plugin.onLootReceived(new LootReceived("Hunters' loot sack (expert)", 0, LootRecordType.EVENT,
+			Collections.singletonList(new ItemStack(1_000, 1)), 1, null));
+		tick(rig, 2);
+		Assert.assertTrue(rig.plugin.getTitle(), rig.plugin.getTitle().toLowerCase().contains("hunter rumours"));
+		Assert.assertEquals("1 sacks", rig.plugin.getBadgeText());
 		Assert.assertEquals(Collections.emptyList(), rig.unexpectedFailures());
 	}
 
