@@ -2,9 +2,10 @@
 
 ## 1.3.0
 
-- Skilling counters use words that match what is counted: Mining counts "ores", Fishing "fish", and Agility and Sailing count "actions" (each XP drop is one obstacle or action, not a lap or a voyage)
+- Skilling counters use words that match what is counted: Mining counts "rocks", Fishing "catches", Runecrafting "crafts", and Agility and Sailing count "actions" (each XP drop is one obstacle or action, not a lap or a voyage)
 - Hunter no longer has one catch-all market. Its four pets each get their own: Chinchompas (Baby chinchompa), Wyrmscraig goats (Mr McGroot), the Herbiboar (Herbi) and Hunter rumours (Quetzin, from opening expert and master Hunters' loot sacks). Hunter XP from anything else, like birds or kebbits, doesn't count
 - A small dot between the two odds in the two-number Full view fills the empty space
+- Fix: on a win, the Full view with two numbers kept only line 1's number when the changes were large; both numbers now shrink slightly to fit
 - Win sounds are louder: a new Win Sound Volume setting (100% by default) plays them at their own volume
 - The Grand Exchange Chime is the default win sound
 - Custom Win Sound: pick "Custom file" and play your own WAVs from the plugin's own data folder (win.wav, plus optional collection-log.wav and pet.wav for those wins), with Show Sound Folder Path and Test Win Sound buttons, a how-to file in the folder, played with RuneLite's own audio player, and the chime as a fallback

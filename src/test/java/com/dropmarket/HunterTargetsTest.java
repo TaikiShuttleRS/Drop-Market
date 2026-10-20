@@ -64,9 +64,10 @@ public class HunterTargetsTest
 	@Test
 	public void counterWordsDescribeWhatIsActuallyCounted()
 	{
-		assertEquals("ores", DropMarketPlugin.skillUnit("Mining"));
+		assertEquals("rocks", DropMarketPlugin.skillUnit("Mining"));
 		assertEquals("logs", DropMarketPlugin.skillUnit("Woodcutting"));
-		assertEquals("fish", DropMarketPlugin.skillUnit("Fishing"));
+		assertEquals("catches", DropMarketPlugin.skillUnit("Fishing"));
+		assertEquals("crafts", DropMarketPlugin.skillUnit("Runecraft"));
 		// One XP drop is an obstacle or an action, not a lap or a voyage.
 		assertEquals("actions", DropMarketPlugin.skillUnit("Agility"));
 		assertEquals("actions", DropMarketPlugin.skillUnit("Sailing"));

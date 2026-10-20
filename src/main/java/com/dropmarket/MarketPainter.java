@@ -196,8 +196,20 @@ final class MarketPainter
 			int pct = (int) Math.round(graph.current());
 			String pctText = pct + "%";
 			String pct2 = secondLine == null ? null : Math.round(secondLine.current()) + "%";
-			// The changes sit 1px higher than the numbers' baseline in the full card.
-			drawOdds(g, PAD, y, w - PAD, true, false, 1, bigFont, smallFont, accent, accent2, pctText, pct2, delta1, delta2, config);
+			// The changes sit 1px higher than the numbers' baseline in the full card. If both big numbers and their
+			// changes won't fit across at the big size (a win's 100% with large changes), they shrink to the
+			// ticker's size and tighten up rather than line 2's number being dropped.
+			Font oddsFont = bigFont;
+			boolean tight = false;
+			if (pct2 != null && config.showSecondNumber()
+				&& PAD + twoNumberWidth(g, bigFont, smallFont, pctText, pct2, delta1, delta2, config.showBothDeltas(), true,
+				false) > w - PAD)
+			{
+				oddsFont = titleFont;
+				tight = true;
+			}
+			drawOdds(g, PAD, y, w - PAD, true, tight, 1, oddsFont, smallFont, accent, accent2, pctText, pct2, delta1, delta2,
+				config);
 			y += bigFm.getDescent();
 			g.setFont(smallFont);
 
@@ -520,11 +532,9 @@ final class MarketPainter
 		int pct2W = pct2 == null ? 0 : bigFm.stringWidth(pct2);
 		int tail2 = delta2On ? changeGap + d2W : 0;
 		boolean number = pct2 != null && config.showSecondNumber();
-		int needed = 0;
 		if (number)
 		{
-			needed = pct1W + changeGap + d1W + groupGap + pct2W + tail2;
-			number = startX + needed <= limit;
+			number = startX + twoNumberWidth(g, bigFont, smallFont, pct1, pct2, delta1, delta2, delta2On, full, tight) <= limit;
 		}
 
 		if (number)
@@ -566,6 +576,18 @@ final class MarketPainter
 		// No second number: line 2's change simply follows line 1's.
 		x += PAIR_GAP;
 		return x + drawDelta(g, x, deltaBase, delta2, accent2, color(config.line2FallingColor(), DropMarketConfig.DEFAULT_NEGATIVE_DELTA_COLOR), smallFont);
+	}
+
+	/** How wide the row is with both big numbers and their changes, including the Full view's 1px nudges. */
+	private static int twoNumberWidth(Graphics2D g, Font bigFont, Font smallFont, String pct1, String pct2, int delta1,
+		int delta2, boolean delta2On, boolean full, boolean tight)
+	{
+		int changeGap = tight ? TIGHT_CHANGE_GAP : CHANGE_GAP;
+		int groupGap = tight ? TIGHT_GROUP_GAP : GROUP_GAP;
+		FontMetrics fm = g.getFontMetrics(bigFont);
+		int tail2 = delta2On ? changeGap + deltaWidth(g, delta2, smallFont) : 0;
+		return fm.stringWidth(pct1) + changeGap + deltaWidth(g, delta1, smallFont) + groupGap + fm.stringWidth(pct2) + tail2
+			+ (full ? 2 : 0);
 	}
 
 	/** True when there is room for the small dot between the two odds: some empty space on both sides of it. */

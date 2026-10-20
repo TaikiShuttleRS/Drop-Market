@@ -456,6 +456,38 @@ public class MarketPainterTest
 		assertFalse(MarketPainter.gapDotFits(-10, 3));
 	}
 
+	/** A win's 100% with big changes doesn't fit at the big size; line 2's number must shrink, not disappear. */
+	@Test
+	public void fullViewKeepsLineTwoNumberOnAWin() throws Exception
+	{
+		TestConfig config = new TestConfig();
+		config.showSecondLine = true;
+		config.showSecondNumber = true;
+		MarketGraph graph = new MarketGraph(new Random(5));
+		graph.reset();
+		graph.pinToCertain();
+		MarketGraph poly = new MarketGraph(new Random(6));
+		poly.reset();
+		poly.pinToCertain();
+		BufferedImage img = new BufferedImage(W, H, BufferedImage.TYPE_INT_ARGB);
+		Graphics2D g = img.createGraphics();
+		MarketPainter.paint(g, W, H, "Chambers of Xeric drops Twisted bow", graph, poly, config, true, 1,
+			FontManager.getRunescapeBoldFont(), FontManager.getRunescapeSmallFont(), "41 KC", true, 0, 38, 38);
+		g.dispose();
+		save(img, "win-two-numbers");
+		// Without line 2's number only its change follows line 1's, which is what used to be drawn on a win; the real
+		// layout must now look different from that, because the number is there.
+		TestConfig without = new TestConfig();
+		without.showSecondLine = true;
+		without.showSecondNumber = false;
+		BufferedImage plain = new BufferedImage(W, H, BufferedImage.TYPE_INT_ARGB);
+		Graphics2D pg = plain.createGraphics();
+		MarketPainter.paint(pg, W, H, "Chambers of Xeric drops Twisted bow", graph, poly, without, true, 1,
+			FontManager.getRunescapeBoldFont(), FontManager.getRunescapeSmallFont(), "41 KC", true, 0, 38, 38);
+		pg.dispose();
+		assertTrue(differs(img, plain));
+	}
+
 	@Test
 	public void bothDeltasCanBeTurnedOff() throws Exception
 	{

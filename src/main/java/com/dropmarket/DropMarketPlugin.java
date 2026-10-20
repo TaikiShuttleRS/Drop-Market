@@ -118,14 +118,15 @@ public class DropMarketPlugin extends Plugin
 		.build();
 	// The badge counter's unit for markets driven by training rather than kills/loot.
 	private static final Map<String, String> SKILL_UNITS = ImmutableMap.<String, String>builder()
-		.put("Mining", "ores")
+		// Not every rock gives ore (clay, sand, gems, essence), so this counts the rocks mined.
+		.put("Mining", "rocks")
 		.put("Woodcutting", "logs")
-		.put("Fishing", "fish")
+		.put("Fishing", "catches")
 		// Every XP drop is one obstacle or one action, not a whole lap or voyage, so these stay generic.
 		.put("Agility", "actions")
 		.put("Thieving", "attempts")
 		.put("Farming", "harvests")
-		.put("Runecraft", "runs")
+		.put("Runecraft", "crafts")
 		.put("Sailing", "actions")
 		.put(DropTables.HERBIBOAR, "harvests")
 		.put(HunterTargets.CHINCHOMPAS, "catches")
