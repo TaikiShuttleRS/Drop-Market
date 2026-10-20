@@ -532,16 +532,19 @@ final class MarketPainter
 			int x = startX;
 			g.setFont(bigFont);
 			text(g, pct1, x, baseline, accent);
-			x += pct1W + changeGap;
+			// In Full the first change sits 1px further right, and line 2's big number 1px further left, than the
+			// plain layout puts them (line 2's own change stays where it was).
+			x += pct1W + changeGap + (full ? 1 : 0);
 			x += drawDelta(g, x, deltaBase, delta1, accent, color(config.line1FallingColor(), DropMarketConfig.DEFAULT_NEGATIVE_DELTA_COLOR), smallFont);
+			int firstGroupEnd = x;
 			// Line 2's readout hugs the right edge in Full; Compact keeps that side for its sparkline.
+			x = full ? limit - (pct2W + tail2) : x + groupGap;
 			if (full)
 			{
-				drawGapDot(g, x, limit - (pct2W + tail2), baseline, bigFm, smallFont);
+				drawGapDot(g, firstGroupEnd, x - 1, baseline, bigFm, smallFont);
 			}
-			x = full ? limit - (pct2W + tail2) : x + groupGap;
 			g.setFont(bigFont);
-			text(g, pct2, x, baseline, accent2);
+			text(g, pct2, full ? x - 1 : x, baseline, accent2);
 			x += pct2W;
 			if (!delta2On)
 			{
@@ -583,7 +586,7 @@ final class MarketPainter
 		}
 		g.setFont(smallFont);
 		// The dot sits mid-height of the big numbers, not on their baseline.
-		int y = baseline - bigFm.getAscent() / 2 + smallFm.getAscent() / 3 + 3;
+		int y = baseline - bigFm.getAscent() / 2 + smallFm.getAscent() / 3 + 4;
 		text(g, "\u00B7", left + (gap - dotWidth) / 2, y, MUTED);
 	}
 
