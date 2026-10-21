@@ -1449,6 +1449,12 @@ public class DropMarketPlugin extends Plugin
 		}
 		String picked = MarketPicker.pick(table, DropTables.isPetFirst(source), marketMinimumGp(),
 			this::priceOf, item -> isLockedSlot(item, fromWiki));
+		// A source with a fixed headline item (the Fractured Archive's Obligator) always bets on it, unless it's blacklisted.
+		String featured = DropTables.featuredItem(source);
+		if (featured != null && tableContains(table, featured))
+		{
+			picked = featured;
+		}
 		if (DropTables.isPetFirst(source))
 		{
 			// A pure skilling/minigame pet market (e.g. Woodcutting: just "Beaver") has nothing else to

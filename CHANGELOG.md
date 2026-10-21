@@ -5,7 +5,7 @@
 - Skilling counters use words that match what is counted: Mining counts "rocks", Fishing "catches", Runecrafting "crafts", and Agility and Sailing count "actions" (each XP drop is one obstacle or action, not a lap or a voyage)
 - Hunter no longer has one catch-all market. Its four pets each get their own: Chinchompas (Baby chinchompa), Wyrmscraig goats (Mr McGroot), the Herbiboar (Herbi) and Hunter rumours (Quetzin, from opening expert and master Hunters' loot sacks). Hunter XP from anything else, like birds or kebbits, doesn't count
 - A small dash between the two odds in the two-number Full view fills the empty space
-- The Fractured Archive (the fourth raid, released 20 October 2026) has a market like the other raids: its uniques (Obligator, Zorya's tome, Ascension crossbows, Rondache, Horn of Bran, Archivist's folio, the four elemental fragments, Orion), short name "FA", and fighting any of its bosses opens it. Kill counts come from its reward chest
+- The Fractured Archive (the fourth raid, released 20 October 2026) has a market like the other raids: its uniques (Obligator, Zorya's tome, Ascension crossbows, Rondache, Horn of Bran, Archivist's folio, the four elemental fragments, Orion), short name "TFA", and fighting any of its bosses (Archive Guardian, Ezekiel, Bork and the Smorks, Moia, Dreadnoth the Jellied, Xarth, Dagon'hai Elder, Ocellus) opens it. Its market always bets on the Obligator, the mega-rare. Kill counts come from its reward chest
 - Fix: on a win, the Full view with two numbers kept only line 1's number when the changes were large; both numbers now shrink slightly to fit
 - Win sounds are louder: a new Win Sound Volume setting (100% by default) plays them at their own volume
 - The Grand Exchange Chime is the default win sound

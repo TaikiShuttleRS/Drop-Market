@@ -36,6 +36,8 @@ final class DropTables
 	private static final Map<String, String> ALIASES = new HashMap<>();
 	private static final Set<String> PET_FIRST = new HashSet<>();
 	private static final Set<String> PETS = new HashSet<>();
+	// Sources whose market always bets on one fixed item (their mega-rare), instead of the priciest drop.
+	private static final Map<String, String> FEATURED = new HashMap<>();
 
 	static
 	{
@@ -69,8 +71,10 @@ final class DropTables
 			"Fragment of living earth", "Fragment of burning fire", "Orion");
 		// The raid's eight bosses (five are fought per run) alias to it so fighting any of them opens its market.
 		alias(FRACTURED_ARCHIVE, "the fractured archive", "fractured archives", "the fractured archives", "fa", "tfa",
-			"fred", "raids 4", "raids4", "the archive guardian", "archive guardian", "ezekiel", "bork", "moia",
-			"dreadnoth the jellied", "xarth", "the obligator", "obligator", "ocellus");
+			"fred", "raids 4", "raids4", "the archive guardian", "archive guardian", "ezekiel", "bork", "smorks",
+			"the smorks", "moia", "dreadnoth the jellied", "xarth", "dagon'hai elder", "ocellus");
+		// The Obligator is the mega-rare, so it is always the item this raid's market bets on.
+		featured(FRACTURED_ARCHIVE, "Obligator (uncharged)");
 
 		table("Nex", "Zaryte vambraces", "Torva platebody (damaged)", "Torva platelegs (damaged)",
 			"Torva full helm (damaged)", "Nihil horn", "Ancient hilt", "Nexling");
@@ -340,6 +344,17 @@ final class DropTables
 			|| n.startsWith("scroll box") || n.startsWith("puzzle box") || n.startsWith("light box");
 	}
 
+	private static void featured(String source, String item)
+	{
+		FEATURED.put(normalize(source), item);
+	}
+
+	/** The item a source's market always features, or null if it picks by value. */
+	static String featuredItem(String source)
+	{
+		return source == null ? null : FEATURED.get(normalize(canonicalSource(source)));
+	}
+
 	private static void petFirst(String source, String... items)
 	{
 		table(source, items);
@@ -411,7 +426,7 @@ final class DropTables
 	static
 	{
 		String[][] pairs = {
-			{CHAMBERS_OF_XERIC, "CoX"}, {THEATRE_OF_BLOOD, "ToB"}, {TOMBS_OF_AMASCUT, "ToA"}, {FRACTURED_ARCHIVE, "FA"},
+			{CHAMBERS_OF_XERIC, "CoX"}, {THEATRE_OF_BLOOD, "ToB"}, {TOMBS_OF_AMASCUT, "ToA"}, {FRACTURED_ARCHIVE, "TFA"},
 			{GUARDIANS_OF_THE_RIFT, "GotR"}, {THE_GAUNTLET, "Gauntlet"}, {CORRUPTED_GAUNTLET, "CG"},
 			{"The Nightmare", "Nightmare"}, {"Phosani's Nightmare", "Phosani"}, {"General Graardor", "Graardor"},
 			{"Kree'arra", "Kree"}, {"Commander Zilyana", "Zilyana"}, {"K'ril Tsutsaroth", "K'ril"},

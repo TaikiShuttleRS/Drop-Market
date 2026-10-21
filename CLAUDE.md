@@ -204,7 +204,8 @@ back to the chime. The two "button" settings (`testWinSound`, `showSoundFolder`,
 ## The Fractured Archive (fourth raid)
 
 Added on release day, so it is hand-written from the wiki's Rewards section only: `DropTables.FRACTURED_ARCHIVE` (short name
-`FA`), its eight boss names as aliases (so any fight opens the market), and `isCompletion` accepts the chest under any of its
+`TFA`), its eight boss names as aliases (so any fight opens the market), a fixed headline item (`featured`: the market always
+bets on the Obligator, the mega-rare), and `isCompletion` accepts the chest under any of its
 spellings (`chestName`). Not verified in-game: the bosses' exact NPC names, the loot tracker's name for its reward chest, and
 whether the items are named exactly as listed. There is no varbit or region detection yet (the RuneLite API we build against
 predates the raid): when `latest.release` brings raid varbits or region IDs, add them to `activitySource()` like CoX/ToB/ToA.

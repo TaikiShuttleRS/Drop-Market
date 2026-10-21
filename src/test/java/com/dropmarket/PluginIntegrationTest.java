@@ -886,11 +886,11 @@ public class PluginIntegrationTest
 		Rig rig = new Rig(Mode.NORMAL, WinSound.OFF);
 		rig.plugin.startUp();
 		HitsplatApplied hit = new HitsplatApplied();
-		hit.setActor(npc("Moia", 12_345));
+		hit.setActor(npc("Dagon'hai Elder", 12_345));
 		hit.setHitsplat(stub(Hitsplat.class, (m, args) -> m.getName().equals("isMine") ? true : defaultFor(m.getReturnType())));
 		rig.plugin.onHitsplatApplied(hit);
 		tick(rig, 2);
-		Assert.assertTrue(rig.plugin.getTitle(), rig.plugin.getTitle().toLowerCase().contains("fractured archive drops"));
+		Assert.assertTrue(rig.plugin.getTitle(), rig.plugin.getTitle().toLowerCase().contains("fractured archive drops obligator"));
 
 		// A sub-boss kill is not a completion; the reward chest (however the loot tracker names it) is.
 		rig.plugin.onLootReceived(new LootReceived("Moia", 0, LootRecordType.NPC,

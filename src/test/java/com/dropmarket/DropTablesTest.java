@@ -97,12 +97,19 @@ public class DropTablesTest
 		assertEquals("Orion", table.get(table.size() - 1));
 		assertTrue(DropTables.isPet("Orion"));
 		// Every spelling of the raid, and each of its bosses, opens the same market.
-		for (String name : new String[]{"The Fractured Archive", "fractured archives", "FA", "Fred", "Moia", "Xarth", "Ocellus",
-			"Ezekiel", "Bork", "Dreadnoth the Jellied", "The Archive Guardian", "The Obligator"})
+		for (String name : new String[]{"The Fractured Archive", "fractured archives", "FA", "TFA", "Fred", "Moia", "Xarth",
+			"Ocellus", "Ezekiel", "Bork", "The Smorks", "Dagon'hai Elder", "Dreadnoth the Jellied", "The Archive Guardian"})
 		{
 			assertEquals(name, DropTables.FRACTURED_ARCHIVE, DropTables.canonicalSource(name));
 		}
-		assertEquals("FA", DropTables.abbreviation(DropTables.FRACTURED_ARCHIVE));
+		assertEquals("TFA", DropTables.abbreviation(DropTables.FRACTURED_ARCHIVE));
+		// The Obligator is the mega-rare, so it is the market's fixed headline item; other raids pick by value.
+		assertEquals("Obligator (uncharged)", DropTables.featuredItem("Fractured Archive"));
+		assertEquals("Obligator (uncharged)", DropTables.featuredItem("The Fractured Archive"));
+		assertNull(DropTables.featuredItem(DropTables.THEATRE_OF_BLOOD));
+		assertNull(DropTables.featuredItem(null));
+		// The Obligator is an item, not a boss.
+		assertEquals("Obligator", DropTables.canonicalSource("Obligator"));
 		// A kill count comes from the reward chest, whichever way its name is written, never from a boss kill.
 		assertTrue(DropTables.isCompletion(DropTables.FRACTURED_ARCHIVE, "Fractured Archive"));
 		assertTrue(DropTables.isCompletion(DropTables.FRACTURED_ARCHIVE, "The Fractured Archive"));
