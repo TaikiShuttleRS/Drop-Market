@@ -42,6 +42,8 @@ final class MarketPainter
 	private static final int BRAND_BAR_H = 14;
 	private static final int COMPACT_BODY_H = 56;
 	private static final int TICKER_H = 20;
+	// The narrowest the ticker's title may get before the second readout is dropped.
+	private static final int TICKER_MIN_TITLE = 40;
 	// Spacing in the odds row: big number to its change, between the two numbers, and between two changes.
 	private static final int CHANGE_GAP = 7;
 	private static final int GROUP_GAP = 14;
@@ -340,7 +342,7 @@ final class MarketPainter
 		int right = w - PAD;
 		int sparkW = w >= 260 ? 44 : 0;
 		// Only wide strips have room for the second line's change next to the odds.
-		boolean secondDelta = secondLine != null && w >= 300 && config.showBothDeltas();
+		boolean secondDelta = secondLine != null && config.showBothDeltas();
 		if (sparkW > 0)
 		{
 			int sparkLeft = right - sparkW;
@@ -352,7 +354,7 @@ final class MarketPainter
 			right = sparkLeft - 8;
 		}
 
-		boolean secondNumber = secondLine != null && config.showSecondNumber() && w >= 300;
+		boolean secondNumber = secondLine != null && config.showSecondNumber();
 		String pct1 = Math.round(graph.current()) + "%";
 		String pct2 = secondLine == null ? "" : Math.round(secondLine.current()) + "%";
 		int d1W = deltaWidth(g, delta1, smallFont);
@@ -361,6 +363,21 @@ final class MarketPainter
 		int group1W = titleFm.stringWidth(pct1) + 6 + d1W;
 		int group2W = secondNumber ? titleFm.stringWidth(pct2) + (secondDelta ? 6 + d2W : 0) : secondDelta ? d2W : 0;
 		int startX = right - (group1W + (group2W > 0 ? groupGap + group2W : 0));
+		// Keep a little room for the title: if the second readout would squeeze it out, drop its change first, then
+		// the number, before the title.
+		if (secondNumber && secondDelta && startX - 8 - titleLeft < TICKER_MIN_TITLE)
+		{
+			secondDelta = false;
+			group2W = titleFm.stringWidth(pct2);
+			startX = right - (group1W + groupGap + group2W);
+		}
+		if (group2W > 0 && startX - 8 - titleLeft < TICKER_MIN_TITLE)
+		{
+			secondNumber = false;
+			secondDelta = false;
+			group2W = 0;
+			startX = right - group1W;
+		}
 		int x = startX;
 		g.setFont(titleFont);
 		text(g, pct1, x, baseline, accent);
@@ -542,17 +559,18 @@ final class MarketPainter
 			int x = startX;
 			g.setFont(bigFont);
 			text(g, pct1, x, baseline, accent);
-			x += pct1W + changeGap;
+			// In Full the first change sits 1px further right, and line 2's big number 1px further left.
+			x += pct1W + changeGap + (full ? 1 : 0);
 			x += drawDelta(g, x, deltaBase, delta1, accent, color(config.line1FallingColor(), DropMarketConfig.DEFAULT_NEGATIVE_DELTA_COLOR), smallFont);
 			int firstGroupEnd = x;
 			// Line 2's readout hugs the right edge in Full; Compact keeps that side for its sparkline.
 			x = full ? limit - (pct2W + tail2) : x + groupGap;
 			if (full)
 			{
-				drawGapDash(g, firstGroupEnd, x, baseline, bigFm, smallFont);
+				drawGapDash(g, firstGroupEnd, x - 1, baseline, bigFm, smallFont);
 			}
 			g.setFont(bigFont);
-			text(g, pct2, x, baseline, accent2);
+			text(g, pct2, full ? x - 1 : x, baseline, accent2);
 			x += pct2W;
 			if (!delta2On)
 			{
@@ -576,7 +594,7 @@ final class MarketPainter
 		return x + drawDelta(g, x, deltaBase, delta2, accent2, color(config.line2FallingColor(), DropMarketConfig.DEFAULT_NEGATIVE_DELTA_COLOR), smallFont);
 	}
 
-	/** How wide the row is with both big numbers and their changes. */
+	/** How wide the row is with both big numbers and their changes, including the Full view's 1px nudges. */
 	private static int twoNumberWidth(Graphics2D g, Font bigFont, Font smallFont, String pct1, String pct2, int delta1,
 		int delta2, boolean delta2On, boolean full, boolean tight)
 	{
@@ -584,7 +602,8 @@ final class MarketPainter
 		int groupGap = tight ? TIGHT_GROUP_GAP : GROUP_GAP;
 		FontMetrics fm = g.getFontMetrics(bigFont);
 		int tail2 = delta2On ? changeGap + deltaWidth(g, delta2, smallFont) : 0;
-		return fm.stringWidth(pct1) + changeGap + deltaWidth(g, delta1, smallFont) + groupGap + fm.stringWidth(pct2) + tail2;
+		return fm.stringWidth(pct1) + changeGap + deltaWidth(g, delta1, smallFont) + groupGap + fm.stringWidth(pct2) + tail2
+			+ (full ? 2 : 0);
 	}
 
 	/** True when there is room for the small dash between the two odds: some empty space on both sides of it. */
