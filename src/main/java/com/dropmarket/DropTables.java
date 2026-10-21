@@ -16,6 +16,8 @@ final class DropTables
 	static final String CHAMBERS_OF_XERIC = "Chambers of Xeric";
 	static final String THEATRE_OF_BLOOD = "Theatre of Blood";
 	static final String TOMBS_OF_AMASCUT = "Tombs of Amascut";
+	// The fourth raid, released 20 October 2026.
+	static final String FRACTURED_ARCHIVE = "Fractured Archive";
 	static final String THE_GAUNTLET = "The Gauntlet";
 	static final String CORRUPTED_GAUNTLET = "The Corrupted Gauntlet";
 	static final String WINTERTODT = "Wintertodt";
@@ -28,7 +30,7 @@ final class DropTables
 	// Raids only pay out their unique drops from the reward chest at the very end, so room/sub-boss kills
 	// (aliased to the raid name for market display) shouldn't bump the raid's completion count.
 	private static final Set<String> RAIDS = new HashSet<>(
-		Arrays.asList(CHAMBERS_OF_XERIC, THEATRE_OF_BLOOD, TOMBS_OF_AMASCUT));
+		Arrays.asList(CHAMBERS_OF_XERIC, THEATRE_OF_BLOOD, TOMBS_OF_AMASCUT, FRACTURED_ARCHIVE));
 
 	private static final Map<String, List<String>> TABLES = new HashMap<>();
 	private static final Map<String, String> ALIASES = new HashMap<>();
@@ -58,6 +60,17 @@ final class DropTables
 		alias(TOMBS_OF_AMASCUT, "toa", "tombs", "raids 3", "raids3", "tombs of amascut expert mode",
 			"tombs of amascut entry mode", "kephri", "akkha", "ba-ba", "zebak", "tumeken's warden",
 			"elidinis' warden");
+
+		// Day-one list from the wiki's Rewards section (the raid's drop rates and its full 17-item collection log aren't
+		// published in structured form yet; the monthly data refresh adds whatever else the wiki records). Obligator is
+		// the Crush mega-rare and Orion the pet.
+		table(FRACTURED_ARCHIVE, "Obligator (uncharged)", "Zorya's tome (uncharged)", "Ascension crossbows", "Rondache",
+			"Horn of Bran", "Archivist's folio (inert)", "Fragment of whispering wind", "Fragment of deep water",
+			"Fragment of living earth", "Fragment of burning fire", "Orion");
+		// The raid's eight bosses (five are fought per run) alias to it so fighting any of them opens its market.
+		alias(FRACTURED_ARCHIVE, "the fractured archive", "fractured archives", "the fractured archives", "fa", "tfa",
+			"fred", "raids 4", "raids4", "the archive guardian", "archive guardian", "ezekiel", "bork", "moia",
+			"dreadnoth the jellied", "xarth", "the obligator", "obligator", "ocellus");
 
 		table("Nex", "Zaryte vambraces", "Torva platebody (damaged)", "Torva platelegs (damaged)",
 			"Torva full helm (damaged)", "Nihil horn", "Ancient hilt", "Nexling");
@@ -285,7 +298,7 @@ final class DropTables
 			"tumekens guardian", "tzrek jad", "venenatis spiderling", "vetion jr", "vorki", "wisp", "yami",
 			"youngllef", "baby chinchompa", "beaver", "giant squirrel", "heron", "rift guardian", "rock golem",
 			"rocky", "soup", "tangleroot", "abyssal protector", "bloodhound", "chompy chick", "herbi",
-			"lil creator", "pet penance queen", "quetzin", "mr mcgroot"));
+			"lil creator", "pet penance queen", "quetzin", "mr mcgroot", "orion"));
 	}
 
 	private DropTables()
@@ -378,7 +391,18 @@ final class DropTables
 	 */
 	static boolean isCompletion(String canonicalSource, String rawName)
 	{
-		return !RAIDS.contains(canonicalSource) || normalize(canonicalSource).equals(normalize(rawName));
+		return !RAIDS.contains(canonicalSource) || chestName(canonicalSource).equals(chestName(rawName));
+	}
+
+	/** A raid's name for comparing chest names: "The Fractured Archive" and "Fractured Archives" are the same raid. */
+	private static String chestName(String name)
+	{
+		String n = normalize(name);
+		if (n.startsWith("the "))
+		{
+			n = n.substring(4);
+		}
+		return n.endsWith("s") && n.contains("archive") ? n.substring(0, n.length() - 1) : n;
 	}
 
 	/** Common OSRS Wiki short names, for the compact layouts. */
@@ -387,7 +411,7 @@ final class DropTables
 	static
 	{
 		String[][] pairs = {
-			{CHAMBERS_OF_XERIC, "CoX"}, {THEATRE_OF_BLOOD, "ToB"}, {TOMBS_OF_AMASCUT, "ToA"},
+			{CHAMBERS_OF_XERIC, "CoX"}, {THEATRE_OF_BLOOD, "ToB"}, {TOMBS_OF_AMASCUT, "ToA"}, {FRACTURED_ARCHIVE, "FA"},
 			{GUARDIANS_OF_THE_RIFT, "GotR"}, {THE_GAUNTLET, "Gauntlet"}, {CORRUPTED_GAUNTLET, "CG"},
 			{"The Nightmare", "Nightmare"}, {"Phosani's Nightmare", "Phosani"}, {"General Graardor", "Graardor"},
 			{"Kree'arra", "Kree"}, {"Commander Zilyana", "Zilyana"}, {"K'ril Tsutsaroth", "K'ril"},

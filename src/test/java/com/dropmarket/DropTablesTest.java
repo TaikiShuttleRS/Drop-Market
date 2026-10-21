@@ -87,6 +87,36 @@ public class DropTablesTest
 	}
 
 	@Test
+	public void theFracturedArchiveIsARaidLikeTheOthers()
+	{
+		java.util.List<String> table = DropTables.lookup(DropTables.FRACTURED_ARCHIVE);
+		assertEquals("Obligator (uncharged)", table.get(0));
+		assertTrue(table.contains("Zorya's tome (uncharged)"));
+		assertTrue(table.contains("Fragment of burning fire"));
+		// The pet is last, like Olmlet and Lil' Zik.
+		assertEquals("Orion", table.get(table.size() - 1));
+		assertTrue(DropTables.isPet("Orion"));
+		// Every spelling of the raid, and each of its bosses, opens the same market.
+		for (String name : new String[]{"The Fractured Archive", "fractured archives", "FA", "Fred", "Moia", "Xarth", "Ocellus",
+			"Ezekiel", "Bork", "Dreadnoth the Jellied", "The Archive Guardian", "The Obligator"})
+		{
+			assertEquals(name, DropTables.FRACTURED_ARCHIVE, DropTables.canonicalSource(name));
+		}
+		assertEquals("FA", DropTables.abbreviation(DropTables.FRACTURED_ARCHIVE));
+		// A kill count comes from the reward chest, whichever way its name is written, never from a boss kill.
+		assertTrue(DropTables.isCompletion(DropTables.FRACTURED_ARCHIVE, "Fractured Archive"));
+		assertTrue(DropTables.isCompletion(DropTables.FRACTURED_ARCHIVE, "The Fractured Archive"));
+		assertTrue(DropTables.isCompletion(DropTables.FRACTURED_ARCHIVE, "Fractured Archives"));
+		assertFalse(DropTables.isCompletion(DropTables.FRACTURED_ARCHIVE, "Moia"));
+		assertFalse(DropTables.isCompletion(DropTables.FRACTURED_ARCHIVE, "Ocellus"));
+		// The older raids count completions exactly as before.
+		assertTrue(DropTables.isCompletion(DropTables.THEATRE_OF_BLOOD, "Theatre of Blood"));
+		assertFalse(DropTables.isCompletion(DropTables.THEATRE_OF_BLOOD, "Verzik Vitur"));
+		assertTrue(DropTables.isCompletion(DropTables.TOMBS_OF_AMASCUT, "Tombs of Amascut"));
+		assertFalse(DropTables.isCompletion(DropTables.CHAMBERS_OF_XERIC, "Tekton"));
+	}
+
+	@Test
 	public void petFirstTablesLeadWithAPet()
 	{
 		String[] sources = {"Mining", "Woodcutting", "Fishing", "Agility", "Thieving", "Farming", "Runecraft",

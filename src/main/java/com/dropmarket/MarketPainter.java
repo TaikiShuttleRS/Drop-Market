@@ -50,8 +50,8 @@ final class MarketPainter
 	private static final int TIGHT_GROUP_GAP = 10;
 	private static final int PAIR_GAP = 10;
 	private static final int SCROLL_GAP = 28;
-	// Empty room kept on each side of the dot between the two odds.
-	private static final int GAP_DOT_MARGIN = 6;
+	// Empty room kept on each side of the dash between the two odds.
+	private static final int GAP_DASH_MARGIN = 6;
 	// The drawn line only moves once the odds have changed by this many points, so it holds flat and then turns sharply.
 	private static final double RIGID_STEP = 1.4;
 	private static final int SCROLL_PX_PER_TICK = 8;
@@ -551,7 +551,7 @@ final class MarketPainter
 			x = full ? limit - (pct2W + tail2) : x + groupGap;
 			if (full)
 			{
-				drawGapDot(g, firstGroupEnd, x - 1, baseline, bigFm, smallFont);
+				drawGapDash(g, firstGroupEnd, x - 1, baseline, bigFm, smallFont);
 			}
 			g.setFont(bigFont);
 			text(g, pct2, full ? x - 1 : x, baseline, accent2);
@@ -590,26 +590,26 @@ final class MarketPainter
 			+ (full ? 2 : 0);
 	}
 
-	/** True when there is room for the small dot between the two odds: some empty space on both sides of it. */
-	static boolean gapDotFits(int gap, int dotWidth)
+	/** True when there is room for the small dash between the two odds: some empty space on both sides of it. */
+	static boolean gapDashFits(int gap, int dashWidth)
 	{
-		return gap >= dotWidth + 2 * GAP_DOT_MARGIN;
+		return gap >= dashWidth + 2 * GAP_DASH_MARGIN;
 	}
 
-	/** A small dot centred in the empty space between the two odds, like the one between LIVE and the counter. */
-	private static void drawGapDot(Graphics2D g, int left, int right, int baseline, FontMetrics bigFm, Font smallFont)
+	/** A small dash centred in the empty space between the two odds. */
+	private static void drawGapDash(Graphics2D g, int left, int right, int baseline, FontMetrics bigFm, Font smallFont)
 	{
 		FontMetrics smallFm = g.getFontMetrics(smallFont);
-		int dotWidth = smallFm.stringWidth("\u00B7");
+		int dashWidth = smallFm.stringWidth("-");
 		int gap = right - left;
-		if (!gapDotFits(gap, dotWidth))
+		if (!gapDashFits(gap, dashWidth))
 		{
 			return;
 		}
 		g.setFont(smallFont);
-		// The dot sits mid-height of the big numbers, not on their baseline.
+		// The dash sits mid-height of the big numbers, not on their baseline.
 		int y = baseline - bigFm.getAscent() / 2 + smallFm.getAscent() / 3 + 4;
-		text(g, "\u00B7", left + (gap - dotWidth) / 2, y, MUTED);
+		text(g, "-", left + (gap - dashWidth) / 2, y, MUTED);
 	}
 
 	/** Always renders (the delta should never disappear); the arrow is skipped only for an exact 0. */

@@ -183,7 +183,8 @@ public class PluginIntegrationTest
 		{
 			ItemPrice price = new ItemPrice();
 			price.setName(name);
-			price.setId(name.length());
+			// The Obligator is the sort of drop a market bets on (5m); everything else stays cheap.
+			price.setId(name.startsWith("Obligator") ? 5_000 : name.length());
 			return price;
 		}
 	}
@@ -875,6 +876,31 @@ public class PluginIntegrationTest
 		tick(rig, 2);
 		Assert.assertTrue(rig.plugin.getTitle(), rig.plugin.getTitle().toLowerCase().contains("hunter rumours"));
 		Assert.assertEquals("1 sacks", rig.plugin.getBadgeText());
+		Assert.assertEquals(Collections.emptyList(), rig.unexpectedFailures());
+	}
+
+	/** Fighting any Fractured Archive boss opens the raid's market, and its reward chest counts a completion. */
+	@Test
+	public void theFracturedArchiveOpensItsMarketAndCountsCompletions() throws Exception
+	{
+		Rig rig = new Rig(Mode.NORMAL, WinSound.OFF);
+		rig.plugin.startUp();
+		HitsplatApplied hit = new HitsplatApplied();
+		hit.setActor(npc("Moia", 12_345));
+		hit.setHitsplat(stub(Hitsplat.class, (m, args) -> m.getName().equals("isMine") ? true : defaultFor(m.getReturnType())));
+		rig.plugin.onHitsplatApplied(hit);
+		tick(rig, 2);
+		Assert.assertTrue(rig.plugin.getTitle(), rig.plugin.getTitle().toLowerCase().contains("fractured archive drops"));
+
+		// A sub-boss kill is not a completion; the reward chest (however the loot tracker names it) is.
+		rig.plugin.onLootReceived(new LootReceived("Moia", 0, LootRecordType.NPC,
+			Collections.singletonList(new ItemStack(1_000, 1)), 1, null));
+		tick(rig, 1);
+		Assert.assertEquals("0 KC", rig.plugin.getBadgeText());
+		rig.plugin.onLootReceived(new LootReceived("The Fractured Archive", 0, LootRecordType.EVENT,
+			Collections.singletonList(new ItemStack(1_000, 1)), 1, null));
+		tick(rig, 1);
+		Assert.assertEquals("1 KC", rig.plugin.getBadgeText());
 		Assert.assertEquals(Collections.emptyList(), rig.unexpectedFailures());
 	}
 

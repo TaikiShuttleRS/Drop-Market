@@ -201,6 +201,15 @@ the plugin's data folder, `Plugin.getPluginDirectory()` (needs `internalName` in
 c-engineer-completed: fixed names, nothing deleted, subfolders ignored) through RuneLite's `AudioPlayer` (the hub rejects `javax.sound`) on RuneLite's injected executor (never the client thread), falling
 back to the chime. The two "button" settings (`testWinSound`, `showSoundFolder`, which prints the folder path in chat) un-tick themselves in `handleConfigChanged`.
 
+## The Fractured Archive (fourth raid)
+
+Added on release day, so it is hand-written from the wiki's Rewards section only: `DropTables.FRACTURED_ARCHIVE` (short name
+`FA`), its eight boss names as aliases (so any fight opens the market), and `isCompletion` accepts the chest under any of its
+spellings (`chestName`). Not verified in-game: the bosses' exact NPC names, the loot tracker's name for its reward chest, and
+whether the items are named exactly as listed. There is no varbit or region detection yet (the RuneLite API we build against
+predates the raid): when `latest.release` brings raid varbits or region IDs, add them to `activitySource()` like CoX/ToB/ToA.
+The wiki's drop Bucket had no rows for it on day one, so check `generate-wiki-drops.mjs` output after the next monthly refresh.
+
 ## Skilling markets and Hunter
 
 Skilling markets count one action per XP drop, so the counter words are generic where a drop isn't a whole lap or voyage

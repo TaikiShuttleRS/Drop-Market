@@ -447,13 +447,13 @@ public class MarketPainterTest
 	}
 
 	@Test
-	public void theDotBetweenTheTwoOddsOnlyAppearsWhenThereIsRoomForIt()
+	public void theDashBetweenTheTwoOddsOnlyAppearsWhenThereIsRoomForIt()
 	{
-		assertTrue(MarketPainter.gapDotFits(30, 3));
-		assertTrue(MarketPainter.gapDotFits(15, 3));
-		assertFalse(MarketPainter.gapDotFits(14, 3));
-		assertFalse(MarketPainter.gapDotFits(0, 3));
-		assertFalse(MarketPainter.gapDotFits(-10, 3));
+		assertTrue(MarketPainter.gapDashFits(30, 3));
+		assertTrue(MarketPainter.gapDashFits(15, 3));
+		assertFalse(MarketPainter.gapDashFits(14, 3));
+		assertFalse(MarketPainter.gapDashFits(0, 3));
+		assertFalse(MarketPainter.gapDashFits(-10, 3));
 	}
 
 	/** A win's 100% with big changes doesn't fit at the big size; line 2's number must shrink, not disappear. */
